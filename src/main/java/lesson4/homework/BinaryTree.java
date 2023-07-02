@@ -1,115 +1,104 @@
 package lesson4.homework;
 
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class BinaryTree {
+    private static final Scanner in = new Scanner(System.in);
+    private static final BinaryTree node = new BinaryTree();
     private static Node root = null;
+
     public static void main(String[] args) {
-        BinaryTree node = new BinaryTree();
-        Scanner scan = new Scanner(System.in);
-
-        char ch;
-        do {
-            System.out.println("Введите целое число");
-            root = node.insert(root, scan.nextInt());
-
-            System.out.println("root = " + root.value);
-            node.inorder(root, null);
-
-            System.out.println(root);
-
-            System.out.println("\nВы хотите продолжить? (введите y или n)");
-            ch = scan.next().charAt(0);
-        } while (ch == 'Y' || ch == 'y');
+        init();
     }
 
-    Node rotateLeft(Node node) {
-        System.out.println("Поворот влево"); // против часовой
-
-        Node child = node.right;
-        Node childLeft = child.left;
-
-        child.left = node;
-        node.right = childLeft;
-
-        return child;
+    public static void init() {
+        while (true) {
+            try {
+                System.out.print("Введите целое число: ");
+                root = node.add(root, Integer.parseInt(in.next()));
+                System.out.printf("\n%s\nПродолжаем? (y/n): ", root);
+                if (!Arrays.asList('Y', 'y').contains(in.next().charAt(0))) return; // EXIT
+            } catch (Exception e) {
+                System.out.println("Error: Попробуйте снова");
+            }
+        }
     }
-    Node rotateRight(Node node) {
-        System.out.println("Поворот вправо"); // по часовой
 
-        Node child = node.left;
-        Node childRight = child.right;
-
-        child.right = node;
-        node.left = childRight;
-
-        return child;
-    }
     boolean isRed(Node node) {
-        if (node == null) return false;
-        return node.isRed;
+        return node != null && node.isRed;
     }
-    void swapColors(Node first, Node second) {
-        boolean tmp = first.isRed;
-        first.isRed = second.isRed;
-        second.isRed = tmp;
 
+    private Node toLeft(Node node) {
+        // System.out.println("Поворот влево"); // против часовой
+        Node x = node.right;
+        node.right = x.left;
+        x.left = node;
+        x.isRed = node.isRed;
+        node.isRed = true;
+        return x;
     }
-    void recolor(Node node) {
-        if (node == null) return;
-        if (this.isRed(node)) {
-            if (node.left != null) node.left.isRed = false;
-            if (node.right != null) node.right.isRed = false;
-        } else {
-            if (node.left != null) node.left.isRed = true;
-        }
-        this.recolor(node.left);
-        this.recolor(node.right);
+    private Node toRight(Node node) {
+        // System.out.println("Поворот вправо"); // по часовой
+        Node x = node.left;
+        node.left = x.right;
+        x.right = node;
+        x.isRed = node.isRed;
+        node.isRed = true;
+        return x;
     }
-    Node insert(Node node, int data) {
-        if (node == null) return (new Node(data)).setRoot();
-        if (data == node.value) return node;
-        if (data < node.value) node.left = this.insert(node.left, data);
-        else node.right = this.insert(node.right, data);
-        // правый - красный, левый - черный/не сущ.
-        if (this.isRed(node.right) && !this.isRed(node.left)) node = this.rotateLeft(node);
-        // левый и левый.левый - красный
-        if (this.isRed(node.left) && this.isRed(node.left.left)) node = this.rotateRight(node);
-        // перекраска
-        this.recolor(root);
+    private void changeColors(Node node) {
+        node.setColor(!node.isRed);
+        node.left.setColor(!node.left.isRed);
+        node.right.setColor(!node.right.isRed);
+    }
+
+    Node add(Node node, int value) {
+        if (node == null) return new Node(value);
+
+        if (this.isRed(node.left) && this.isRed(node.right)) this.changeColors(node);
+
+        if (value == node.value) return node;
+        if (value < node.value) node.left = this.add(node.left, value);
+        if (value > node.value) node.right = this.add(node.right, value);
+
+        if (this.isRed(node.right) && !this.isRed(node.left)) node = this.toLeft(node);
+        if (this.isRed(node.left) && this.isRed(node.left.left)) node = this.toRight(node);
+
         return node;
-    }
-    void inorder(Node node, Node parent) {
-        if (node != null) {
-            this.inorder(node.left, node);
-            this.inorder(node.right, node);
-        }
     }
 
     static class Node {
+        public static final String ANSI_RESET = "\u001B[0m";
+        public static final String ANSI_BLACK = "\u001B[30m";
+        public static final String ANSI_RED = "\u001B[31m";
+
         int value;
         Node left = null;
         Node right = null;
-        boolean isRed = true;
+        boolean isRed = root != null;
 
-        Node(int data) {
-            this.value = data;
+        Node(int value) {
+            this.value = value;
         }
-        public Node setRoot() {
-            this.isRed = false;
-            return this;
+
+        public void setColor(boolean isRed) {
+            this.isRed = this != root && isRed;
+        }
+
+        public String toString() {
+            return this.view(0);
         }
         private String view(int countTab) {
             String tab = countTab <= 0 ? "" : String.format("%" + countTab + "s", "").replace(" ", "|\t");
             return String.format(
-                    "%s%s\n\t%sleft: %s\n\t%sright: %s",
+                    "%s%s%s%s\n\t%sleft: %s\n\t%sright: %s",
+                    this.isRed ? ANSI_RED : ANSI_BLACK,
                     this.value, this.isRed ? "_RED" : "_BLACK",
-                    tab, this.left == null ? null : this.left.view(countTab + 1),
-                    tab, this.right == null ? null : this.right.view(countTab + 1)
+                    ANSI_RESET,
+                    tab, this.left == null ? "null_BLACK" : this.left.view(countTab + 1),
+                    tab, this.right == null ? "null_BLACK" : this.right.view(countTab + 1)
             );
-        }
-        public String toString() {
-            return this.view(0);
         }
     }
 }
