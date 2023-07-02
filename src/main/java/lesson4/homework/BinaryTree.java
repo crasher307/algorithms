@@ -77,6 +77,7 @@ public class BinaryTree {
         public static final String ANSI_RESET = "\u001B[0m";
         public static final String ANSI_BLACK = "\u001B[30m";
         public static final String ANSI_RED = "\u001B[31m";
+        public static final String NULL_DATA = ANSI_BLACK + "NULL_BLACK" + ANSI_RESET;
 
         int value;
         Node left = null;
@@ -101,8 +102,8 @@ public class BinaryTree {
                     this.isRed ? ANSI_RED : ANSI_BLACK,
                     this.value, this.isRed ? "_RED" : "_BLACK",
                     ANSI_RESET,
-                    tab, this.left == null ? "null_BLACK" : this.left.view(countTab + 1),
-                    tab, this.right == null ? "null_BLACK" : this.right.view(countTab + 1)
+                    tab, this.left == null ? NULL_DATA : this.left.view(countTab + 1),
+                    tab, this.right == null ? NULL_DATA : this.right.view(countTab + 1)
             );
         }
     }
