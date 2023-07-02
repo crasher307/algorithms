@@ -9,6 +9,7 @@ public class BinaryTree {
     private static Node root = null;
 
     public static void main(String[] args) {
+        test();
         init();
     }
 
@@ -23,6 +24,10 @@ public class BinaryTree {
                 System.out.println("Error: Попробуйте снова");
             }
         }
+    }
+    public static void test() {
+        for (int i = 1; i <= 20; i++) root = node.add(root, i);
+        System.out.println(root);
     }
 
     boolean isRed(Node node) {
@@ -56,14 +61,14 @@ public class BinaryTree {
     Node add(Node node, int value) {
         if (node == null) return new Node(value);
 
+        if (value != node.value) {
+            if (value < node.value) node.left = this.add(node.left, value);
+            else node.right = this.add(node.right, value);
+            if (this.isRed(node.right) && !this.isRed(node.left)) node = this.toLeft(node);
+            if (this.isRed(node.left) && this.isRed(node.left.left)) node = this.toRight(node);
+        }
+
         if (this.isRed(node.left) && this.isRed(node.right)) this.changeColors(node);
-
-        if (value == node.value) return node;
-        if (value < node.value) node.left = this.add(node.left, value);
-        if (value > node.value) node.right = this.add(node.right, value);
-
-        if (this.isRed(node.right) && !this.isRed(node.left)) node = this.toLeft(node);
-        if (this.isRed(node.left) && this.isRed(node.left.left)) node = this.toRight(node);
 
         return node;
     }
